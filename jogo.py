@@ -4,6 +4,9 @@ import numpy as np
 from Move import Move
 from Player import Player
 
+font = cv2.FONT_HERSHEY_SIMPLEX
+font_scale = 1.0
+thickness = 2
 
 def apply_filters(image):
     matriz = np.ones(image.shape, dtype="uint8") * 5
@@ -143,9 +146,6 @@ def process_player_move(player):
 
 def draw_players_move(image, player1, player2):
     player1_display_position = (50, 50)
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 1.0
-    thickness = 2
 
     text = f"player1: {player1.current_move.value}"
     cv2.putText(
@@ -209,9 +209,29 @@ def process_round(player1, player2):
     else:
         return round_result
 
+def draw_round_result(round_result, position):
+    cv2.putText(
+        image,
+        round_result,
+        position,
+        font,
+        font_scale,
+        (0, 0, 0),
+        thickness
+    )
 
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
+def draw_score(player1, player2, position):
+    text = f"{player1.points} x {player2.points}"
+    cv2.putText(
+        image,
+        text,
+        position,
+        font,
+        font_scale,
+        (0, 0, 0),
+        thickness
+    )
+
 mp_hands = mp.solutions.hands
 
 hands = mp_hands.Hands(
@@ -251,38 +271,17 @@ while cap.isOpened():
             draw_players_move(image, player1, player2)
             round_result = process_round(player1, player2)
 
-    cv2.putText(
-        image,
-        round_result,
-        (int(image.shape[1] * 0.5), 150),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1.0,
-        (0, 0, 0),
-        2,
-    )
-    text = f"{player1.points} x {player2.points}"
-    cv2.putText(
-        image,
-        text,
-        (int(image.shape[1] * 0.5), 50),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1.0,
-        (0, 0, 0),
-        2,
-    )
 
+    center_x_frame = int(image.shape[1] * 0.5)
+
+    draw_round_result(round_result, (center_x_frame, 150))
+
+    draw_score(player1, player2, (center_x_frame, 50) )
+
+    image = cv2.resize(image, ( int(image.shape[1]*0.5), int(image.shape[0]*0.5)))
     cv2.imshow("Checkpoint", image)
     if cv2.waitKey(25) & 0xFF == ord("r"):
         break
 
 cap.release()
 cv2.destroyAllWindows()
-
-
-# mp_drawing.draw_landmarks(
-#                         image,
-#                         hand_landmarks,
-#                         mp_hands.HAND_CONNECTIONS,
-#                         mp_drawing_styles.get_default_hand_landmarks_style(),
-#                         mp_drawing_styles.get_default_hand_connections_style(),
-#                     )
